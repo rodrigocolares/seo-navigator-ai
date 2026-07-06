@@ -78,10 +78,11 @@ function DashboardPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="5">5 páginas</SelectItem>
               <SelectItem value="15">15 páginas</SelectItem>
-              <SelectItem value="30">30 páginas</SelectItem>
               <SelectItem value="50">50 páginas</SelectItem>
+              <SelectItem value="100">100 páginas</SelectItem>
+              <SelectItem value="250">250 páginas</SelectItem>
+              <SelectItem value="500">500 páginas</SelectItem>
             </SelectContent>
           </Select>
           <Button
