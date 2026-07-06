@@ -14,7 +14,224 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      scan_issues: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          effort: string | null
+          id: string
+          impact: string | null
+          page_id: string | null
+          recommendation: string | null
+          scan_id: string
+          severity: Database["public"]["Enums"]["severity"]
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          effort?: string | null
+          id?: string
+          impact?: string | null
+          page_id?: string | null
+          recommendation?: string | null
+          scan_id: string
+          severity?: Database["public"]["Enums"]["severity"]
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          effort?: string | null
+          id?: string
+          impact?: string | null
+          page_id?: string | null
+          recommendation?: string | null
+          scan_id?: string
+          severity?: Database["public"]["Enums"]["severity"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_issues_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "scan_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_issues_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scan_pages: {
+        Row: {
+          canonical: string | null
+          content_type: string | null
+          created_at: string
+          data: Json
+          h1_count: number | null
+          h2_count: number | null
+          has_og: boolean | null
+          has_schema: boolean | null
+          id: string
+          images_missing_alt: number | null
+          images_total: number | null
+          is_https: boolean | null
+          lang: string | null
+          links_external: number | null
+          links_internal: number | null
+          meta_description: string | null
+          response_ms: number | null
+          robots_meta: string | null
+          scan_id: string
+          size_bytes: number | null
+          status_code: number | null
+          title: string | null
+          url: string
+          viewport: string | null
+          word_count: number | null
+        }
+        Insert: {
+          canonical?: string | null
+          content_type?: string | null
+          created_at?: string
+          data?: Json
+          h1_count?: number | null
+          h2_count?: number | null
+          has_og?: boolean | null
+          has_schema?: boolean | null
+          id?: string
+          images_missing_alt?: number | null
+          images_total?: number | null
+          is_https?: boolean | null
+          lang?: string | null
+          links_external?: number | null
+          links_internal?: number | null
+          meta_description?: string | null
+          response_ms?: number | null
+          robots_meta?: string | null
+          scan_id: string
+          size_bytes?: number | null
+          status_code?: number | null
+          title?: string | null
+          url: string
+          viewport?: string | null
+          word_count?: number | null
+        }
+        Update: {
+          canonical?: string | null
+          content_type?: string | null
+          created_at?: string
+          data?: Json
+          h1_count?: number | null
+          h2_count?: number | null
+          has_og?: boolean | null
+          has_schema?: boolean | null
+          id?: string
+          images_missing_alt?: number | null
+          images_total?: number | null
+          is_https?: boolean | null
+          lang?: string | null
+          links_external?: number | null
+          links_internal?: number | null
+          meta_description?: string | null
+          response_ms?: number | null
+          robots_meta?: string | null
+          scan_id?: string
+          size_bytes?: number | null
+          status_code?: number | null
+          title?: string | null
+          url?: string
+          viewport?: string | null
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_pages_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scans: {
+        Row: {
+          ai_report: Json | null
+          created_at: string
+          error_message: string | null
+          finished_at: string | null
+          host: string
+          id: string
+          max_pages: number
+          pages_crawled: number
+          scores: Json
+          started_at: string
+          status: Database["public"]["Enums"]["scan_status"]
+          url: string
+          user_id: string
+        }
+        Insert: {
+          ai_report?: Json | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          host: string
+          id?: string
+          max_pages?: number
+          pages_crawled?: number
+          scores?: Json
+          started_at?: string
+          status?: Database["public"]["Enums"]["scan_status"]
+          url: string
+          user_id: string
+        }
+        Update: {
+          ai_report?: Json | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          host?: string
+          id?: string
+          max_pages?: number
+          pages_crawled?: number
+          scores?: Json
+          started_at?: string
+          status?: Database["public"]["Enums"]["scan_status"]
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +240,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      scan_status: "queued" | "crawling" | "analyzing" | "completed" | "failed"
+      severity: "low" | "medium" | "high"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +368,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      scan_status: ["queued", "crawling", "analyzing", "completed", "failed"],
+      severity: ["low", "medium", "high"],
+    },
   },
 } as const
