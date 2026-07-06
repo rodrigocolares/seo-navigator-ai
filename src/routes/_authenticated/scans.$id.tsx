@@ -66,7 +66,7 @@ function ScanDetailPage() {
             </a>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
               <StatusBadge status={scan.status} />
-              <span className="text-muted-foreground">{scan.pages_crawled} páginas · iniciado {new Date(scan.started_at).toLocaleString("pt-BR")}</span>
+              <span className="text-muted-foreground">{scan.pages_crawled} páginas · {scan.started_at ? `iniciado ${new Date(scan.started_at).toLocaleString("pt-BR")}` : "aguardando início"}</span>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
