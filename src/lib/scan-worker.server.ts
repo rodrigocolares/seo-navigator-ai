@@ -41,7 +41,7 @@ async function log(
       job_id,
       level,
       message,
-      context: context ?? null,
+      context: (context ?? null) as never,
     });
   } catch {
     /* logging must never crash */
