@@ -18,7 +18,7 @@ function DashboardPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const listFn = useServerFn(listMyScans);
-  const startFn = useServerFn(startScan);
+  const startFn = useServerFn(startAsyncScan);
 
   const [url, setUrl] = useState("");
   const [maxPages, setMaxPages] = useState("15");
