@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getScanDetail } from "@/lib/seo-scan.functions";
 import { ScoreRing } from "@/components/ScoreRing";
-import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
+import { ExportModal } from "@/components/ExportModal";
+import { Button } from "@/components/ui/button";
+import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -22,6 +25,7 @@ interface AIReport {
 
 function ScanDetailPage() {
   const { id } = Route.useParams();
+  const [exportOpen, setExportOpen] = useState(false);
   const fn = useServerFn(getScanDetail);
   const { data, isLoading } = useQuery({
     queryKey: ["scan", id],
@@ -64,7 +68,23 @@ function ScanDetailPage() {
               <span className="text-muted-foreground">{scan.pages_crawled} páginas · iniciado {new Date(scan.started_at).toLocaleString("pt-BR")}</span>
             </div>
           </div>
+          <Button
+            onClick={() => setExportOpen(true)}
+            disabled={scan.status !== "completed"}
+            title={scan.status !== "completed" ? "Relatório disponível após a conclusão da análise" : "Exportar Relatório"}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Relatório
+          </Button>
         </div>
+
+        <ExportModal
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+          scanId={scan.id}
+          host={scan.host}
+          scanCompleted={scan.status === "completed"}
+        />
 
         {scan.status === "failed" && (
           <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm">
