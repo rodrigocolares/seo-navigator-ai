@@ -290,6 +290,8 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     completed: "bg-[oklch(0.75_0.16_155)]/15 text-[oklch(0.75_0.16_155)]",
     failed: "bg-destructive/15 text-destructive",
+    cancelled: "bg-muted text-muted-foreground",
+    running: "bg-primary/15 text-primary",
     crawling: "bg-primary/15 text-primary",
     analyzing: "bg-primary/15 text-primary",
     queued: "bg-muted text-muted-foreground",
