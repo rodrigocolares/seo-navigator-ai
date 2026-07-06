@@ -16,6 +16,7 @@ import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCompareRouteImport } from './routes/_authenticated/compare'
 import { Route as AuthenticatedScansIdRouteImport } from './routes/_authenticated/scans.$id'
+import { Route as ApiPublicHooksProcessScanRouteImport } from './routes/api/public/hooks/process-scan'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -51,6 +52,12 @@ const AuthenticatedScansIdRoute = AuthenticatedScansIdRouteImport.update({
   path: '/scans/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicHooksProcessScanRoute =
+  ApiPublicHooksProcessScanRouteImport.update({
+    id: '/api/public/hooks/process-scan',
+    path: '/api/public/hooks/process-scan',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/scans/$id': typeof AuthenticatedScansIdRoute
+  '/api/public/hooks/process-scan': typeof ApiPublicHooksProcessScanRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/scans/$id': typeof AuthenticatedScansIdRoute
+  '/api/public/hooks/process-scan': typeof ApiPublicHooksProcessScanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,6 +86,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/scans/$id': typeof AuthenticatedScansIdRoute
+  '/api/public/hooks/process-scan': typeof ApiPublicHooksProcessScanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -87,8 +97,16 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/history'
     | '/scans/$id'
+    | '/api/public/hooks/process-scan'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/compare' | '/dashboard' | '/history' | '/scans/$id'
+  to:
+    | '/'
+    | '/auth'
+    | '/compare'
+    | '/dashboard'
+    | '/history'
+    | '/scans/$id'
+    | '/api/public/hooks/process-scan'
   id:
     | '__root__'
     | '/'
@@ -98,12 +116,14 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/history'
     | '/_authenticated/scans/$id'
+    | '/api/public/hooks/process-scan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicHooksProcessScanRoute: typeof ApiPublicHooksProcessScanRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -157,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedScansIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/process-scan': {
+      id: '/api/public/hooks/process-scan'
+      path: '/api/public/hooks/process-scan'
+      fullPath: '/api/public/hooks/process-scan'
+      preLoaderRoute: typeof ApiPublicHooksProcessScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -181,6 +208,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicHooksProcessScanRoute: ApiPublicHooksProcessScanRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
