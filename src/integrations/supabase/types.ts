@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      export_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          file_name: string
+          format: string
+          id: string
+          report_type: string
+          scan_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          file_name: string
+          format: string
+          id?: string
+          report_type: string
+          scan_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          file_name?: string
+          format?: string
+          id?: string
+          report_type?: string
+          scan_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "export_logs_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
