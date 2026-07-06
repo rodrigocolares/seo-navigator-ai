@@ -35,7 +35,7 @@ function DashboardPage() {
   const mutation = useMutation({
     mutationFn: async (input: { url: string; maxPages: number }) => startFn({ data: input }),
     onSuccess: (res) => {
-      toast.success("Análise iniciada");
+      toast.success("Análise adicionada à fila");
       qc.invalidateQueries({ queryKey: ["scans"] });
       navigate({ to: "/scans/$id", params: { id: res.id } });
     },
