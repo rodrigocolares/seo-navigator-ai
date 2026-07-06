@@ -68,14 +68,22 @@ function ScanDetailPage() {
               <span className="text-muted-foreground">{scan.pages_crawled} páginas · iniciado {new Date(scan.started_at).toLocaleString("pt-BR")}</span>
             </div>
           </div>
-          <Button
-            onClick={() => setExportOpen(true)}
-            disabled={scan.status !== "completed"}
-            title={scan.status !== "completed" ? "Relatório disponível após a conclusão da análise" : "Exportar Relatório"}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Exportar Relatório
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/compare" search={{ b: scan.id, host: scan.host }}>
+              <Button variant="secondary" disabled={scan.status !== "completed"}>
+                <GitCompare className="mr-2 h-4 w-4" />
+                Comparar Análises
+              </Button>
+            </Link>
+            <Button
+              onClick={() => setExportOpen(true)}
+              disabled={scan.status !== "completed"}
+              title={scan.status !== "completed" ? "Relatório disponível após a conclusão da análise" : "Exportar Relatório"}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar Relatório
+            </Button>
+          </div>
         </div>
 
         <ExportModal
