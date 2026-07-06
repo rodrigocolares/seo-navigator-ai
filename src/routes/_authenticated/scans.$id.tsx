@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getScanDetail } from "@/lib/seo-scan.functions";
 import { ScoreRing } from "@/components/ScoreRing";
-import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
+import { ExportModal } from "@/components/ExportModal";
+import { Button } from "@/components/ui/button";
+import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
