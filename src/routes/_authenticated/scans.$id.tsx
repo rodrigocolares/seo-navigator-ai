@@ -33,7 +33,7 @@ function ScanDetailPage() {
     queryFn: () => fn({ data: { id } }),
     refetchInterval: (q) => {
       const status = (q.state.data as { scan: { status: string } } | undefined)?.scan.status;
-      return status === "crawling" || status === "analyzing" ? 3000 : false;
+      return status && ["queued", "running", "crawling", "analyzing"].includes(status) ? 4000 : false;
     },
   });
 
