@@ -68,7 +68,23 @@ function ScanDetailPage() {
               <span className="text-muted-foreground">{scan.pages_crawled} páginas · iniciado {new Date(scan.started_at).toLocaleString("pt-BR")}</span>
             </div>
           </div>
+          <Button
+            onClick={() => setExportOpen(true)}
+            disabled={scan.status !== "completed"}
+            title={scan.status !== "completed" ? "Relatório disponível após a conclusão da análise" : "Exportar Relatório"}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Relatório
+          </Button>
         </div>
+
+        <ExportModal
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+          scanId={scan.id}
+          host={scan.host}
+          scanCompleted={scan.status === "completed"}
+        />
 
         {scan.status === "failed" && (
           <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm">
