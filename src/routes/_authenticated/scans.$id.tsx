@@ -25,6 +25,7 @@ interface AIReport {
 
 function ScanDetailPage() {
   const { id } = Route.useParams();
+  const [exportOpen, setExportOpen] = useState(false);
   const fn = useServerFn(getScanDetail);
   const { data, isLoading } = useQuery({
     queryKey: ["scan", id],
