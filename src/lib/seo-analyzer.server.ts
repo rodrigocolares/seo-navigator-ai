@@ -308,7 +308,7 @@ export interface CrawlResult {
   siteIssues: RawIssue[];
 }
 
-function normalizeUrl(u: string): string {
+export function normalizeUrl(u: string): string {
   try {
     const url = new URL(u);
     url.hash = "";
@@ -319,7 +319,7 @@ function normalizeUrl(u: string): string {
   }
 }
 
-function shouldSkip(url: string): boolean {
+export function shouldSkip(url: string): boolean {
   return /\/(wp-admin|admin|login|logout|signout|signin|painel|dashboard-admin|cart|checkout|carrinho)(\/|$|\?)/i.test(url)
     || /\.(pdf|zip|rar|jpg|jpeg|png|gif|svg|webp|avif|mp4|mp3|css|js|xml)($|\?)/i.test(url);
 }
