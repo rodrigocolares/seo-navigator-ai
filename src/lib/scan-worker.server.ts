@@ -61,7 +61,7 @@ async function enqueue(
     scan_id,
     user_id,
     job_type,
-    payload,
+    payload: payload as never,
     priority,
     run_after,
   });
