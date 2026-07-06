@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listMyScans, startScan } from "@/lib/seo-scan.functions";
+import { listMyScans } from "@/lib/seo-scan.functions";
+import { startAsyncScan } from "@/lib/scan-queue.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,7 +18,7 @@ function DashboardPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const listFn = useServerFn(listMyScans);
-  const startFn = useServerFn(startScan);
+  const startFn = useServerFn(startAsyncScan);
 
   const [url, setUrl] = useState("");
   const [maxPages, setMaxPages] = useState("15");
@@ -34,7 +35,7 @@ function DashboardPage() {
   const mutation = useMutation({
     mutationFn: async (input: { url: string; maxPages: number }) => startFn({ data: input }),
     onSuccess: (res) => {
-      toast.success("Análise iniciada");
+      toast.success("Análise adicionada à fila");
       qc.invalidateQueries({ queryKey: ["scans"] });
       navigate({ to: "/scans/$id", params: { id: res.id } });
     },
@@ -77,10 +78,11 @@ function DashboardPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="5">5 páginas</SelectItem>
               <SelectItem value="15">15 páginas</SelectItem>
-              <SelectItem value="30">30 páginas</SelectItem>
               <SelectItem value="50">50 páginas</SelectItem>
+              <SelectItem value="100">100 páginas</SelectItem>
+              <SelectItem value="250">250 páginas</SelectItem>
+              <SelectItem value="500">500 páginas</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -99,7 +101,7 @@ function DashboardPage() {
         </form>
         {mutation.isPending && (
           <p className="mt-3 text-xs text-muted-foreground">
-            Isto pode levar até um minuto. Não feche a página.
+            Adicionando análise à fila…
           </p>
         )}
       </div>

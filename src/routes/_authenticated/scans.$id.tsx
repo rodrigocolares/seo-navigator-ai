@@ -5,8 +5,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { getScanDetail } from "@/lib/seo-scan.functions";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ExportModal } from "@/components/ExportModal";
+import { ScanProgressPanel } from "@/components/ScanProgressPanel";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles, Download, GitCompare } from "lucide-react";
+import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles, Download, GitCompare, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -32,7 +33,7 @@ function ScanDetailPage() {
     queryFn: () => fn({ data: { id } }),
     refetchInterval: (q) => {
       const status = (q.state.data as { scan: { status: string } } | undefined)?.scan.status;
-      return status === "crawling" || status === "analyzing" ? 3000 : false;
+      return status && ["queued", "running", "crawling", "analyzing"].includes(status) ? 4000 : false;
     },
   });
 
@@ -48,7 +49,7 @@ function ScanDetailPage() {
   const scores = (scan.scores ?? {}) as Record<string, number>;
   const ai = scan.ai_report as AIReport | null;
 
-  const running = scan.status === "crawling" || scan.status === "analyzing";
+  const running = ["queued", "running", "crawling", "analyzing"].includes(scan.status);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -65,7 +66,7 @@ function ScanDetailPage() {
             </a>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
               <StatusBadge status={scan.status} />
-              <span className="text-muted-foreground">{scan.pages_crawled} páginas · iniciado {new Date(scan.started_at).toLocaleString("pt-BR")}</span>
+              <span className="text-muted-foreground">{scan.pages_crawled} páginas · {scan.started_at ? `iniciado ${new Date(scan.started_at).toLocaleString("pt-BR")}` : "aguardando início"}</span>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -101,12 +102,21 @@ function ScanDetailPage() {
           </div>
         )}
 
-        {running && (
-          <div className="mt-6 flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm">
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            {scan.status === "crawling" ? "Rastreando páginas do site…" : "IA analisando resultados…"}
+        {scan.status === "cancelled" && (
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-border/60 bg-muted/40 p-3 text-sm">
+            <XCircle className="mt-0.5 h-4 w-4 text-muted-foreground" />
+            <div>Análise cancelada pelo usuário.</div>
           </div>
         )}
+
+        {scan.status === "completed" && scan.ai_error && (
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-[oklch(0.78_0.16_75)]/30 bg-[oklch(0.78_0.16_75)]/10 p-3 text-sm">
+            <AlertCircle className="mt-0.5 h-4 w-4 text-[oklch(0.78_0.16_75)]" />
+            <div>Análise concluída, mas o parecer IA não pôde ser gerado.</div>
+          </div>
+        )}
+
+        {running && <ScanProgressPanel scanId={scan.id} />}
 
         {scan.pages_crawled > 0 && (
           <div className="mt-8 grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-8">
@@ -280,6 +290,8 @@ function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     completed: "bg-[oklch(0.75_0.16_155)]/15 text-[oklch(0.75_0.16_155)]",
     failed: "bg-destructive/15 text-destructive",
+    cancelled: "bg-muted text-muted-foreground",
+    running: "bg-primary/15 text-primary",
     crawling: "bg-primary/15 text-primary",
     analyzing: "bg-primary/15 text-primary",
     queued: "bg-muted text-muted-foreground",
