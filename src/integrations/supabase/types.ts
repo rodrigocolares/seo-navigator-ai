@@ -467,7 +467,14 @@ export type Database = {
       }
     }
     Enums: {
-      scan_status: "queued" | "crawling" | "analyzing" | "completed" | "failed"
+      scan_status:
+        | "queued"
+        | "crawling"
+        | "analyzing"
+        | "completed"
+        | "failed"
+        | "running"
+        | "cancelled"
       severity: "low" | "medium" | "high"
     }
     CompositeTypes: {
@@ -596,7 +603,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      scan_status: ["queued", "crawling", "analyzing", "completed", "failed"],
+      scan_status: [
+        "queued",
+        "crawling",
+        "analyzing",
+        "completed",
+        "failed",
+        "running",
+        "cancelled",
+      ],
       severity: ["low", "medium", "high"],
     },
   },
