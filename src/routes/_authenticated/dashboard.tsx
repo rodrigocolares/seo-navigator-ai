@@ -101,7 +101,7 @@ function DashboardPage() {
         </form>
         {mutation.isPending && (
           <p className="mt-3 text-xs text-muted-foreground">
-            Isto pode levar até um minuto. Não feche a página.
+            Adicionando análise à fila…
           </p>
         )}
       </div>
