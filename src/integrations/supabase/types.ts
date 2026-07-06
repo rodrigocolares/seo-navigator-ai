@@ -64,18 +64,21 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          plan: string
         }
         Insert: {
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          plan?: string
         }
         Update: {
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          plan?: string
         }
         Relationships: []
       }
@@ -129,6 +132,122 @@ export type Database = {
           },
           {
             foreignKeyName: "scan_issues_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scan_job_logs: {
+        Row: {
+          context: Json | null
+          created_at: string
+          id: string
+          job_id: string | null
+          level: string
+          message: string
+          scan_id: string
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          level?: string
+          message: string
+          scan_id: string
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          level?: string
+          message?: string
+          scan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_job_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "scan_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_job_logs_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scan_jobs: {
+        Row: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          job_type: string
+          locked_at: string | null
+          locked_by: string | null
+          max_attempts: number
+          payload: Json
+          priority: number
+          run_after: string
+          scan_id: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          job_type: string
+          locked_at?: string | null
+          locked_by?: string | null
+          max_attempts?: number
+          payload?: Json
+          priority?: number
+          run_after?: string
+          scan_id: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          job_type?: string
+          locked_at?: string | null
+          locked_by?: string | null
+          max_attempts?: number
+          payload?: Json
+          priority?: number
+          run_after?: string
+          scan_id?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_jobs_scan_id_fkey"
             columns: ["scan_id"]
             isOneToOne: false
             referencedRelation: "scans"
@@ -230,14 +349,26 @@ export type Database = {
       }
       scans: {
         Row: {
+          ai_error: string | null
           ai_report: Json | null
+          cancelled_at: string | null
+          completed_at: string | null
+          crawler_mode: string
           created_at: string
+          current_url: string | null
           error_message: string | null
+          estimated_remaining_seconds: number | null
+          failed_at: string | null
           finished_at: string | null
           host: string
           id: string
           max_pages: number
           pages_crawled: number
+          pages_discovered: number
+          pages_failed: number
+          pages_processed: number
+          progress: number
+          retry_count: number
           scores: Json
           started_at: string
           status: Database["public"]["Enums"]["scan_status"]
@@ -245,14 +376,26 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_error?: string | null
           ai_report?: Json | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          crawler_mode?: string
           created_at?: string
+          current_url?: string | null
           error_message?: string | null
+          estimated_remaining_seconds?: number | null
+          failed_at?: string | null
           finished_at?: string | null
           host: string
           id?: string
           max_pages?: number
           pages_crawled?: number
+          pages_discovered?: number
+          pages_failed?: number
+          pages_processed?: number
+          progress?: number
+          retry_count?: number
           scores?: Json
           started_at?: string
           status?: Database["public"]["Enums"]["scan_status"]
@@ -260,14 +403,26 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_error?: string | null
           ai_report?: Json | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          crawler_mode?: string
           created_at?: string
+          current_url?: string | null
           error_message?: string | null
+          estimated_remaining_seconds?: number | null
+          failed_at?: string | null
           finished_at?: string | null
           host?: string
           id?: string
           max_pages?: number
           pages_crawled?: number
+          pages_discovered?: number
+          pages_failed?: number
+          pages_processed?: number
+          progress?: number
+          retry_count?: number
           scores?: Json
           started_at?: string
           status?: Database["public"]["Enums"]["scan_status"]
@@ -281,7 +436,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_scan_jobs: {
+        Args: { _limit: number; _worker: string }
+        Returns: {
+          attempts: number
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          job_type: string
+          locked_at: string | null
+          locked_by: string | null
+          max_attempts: number
+          payload: Json
+          priority: number
+          run_after: string
+          scan_id: string
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "scan_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       scan_status: "queued" | "crawling" | "analyzing" | "completed" | "failed"
