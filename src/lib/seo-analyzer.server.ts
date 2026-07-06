@@ -99,7 +99,7 @@ export interface RawIssue {
   effort?: string;
 }
 
-function analyzeHtml(page: FetchedPage, host: string): PageAnalysis {
+export function analyzeHtml(page: FetchedPage, host: string): PageAnalysis {
   const html = page.html;
   const finalUrl = new URL(page.finalUrl);
 
