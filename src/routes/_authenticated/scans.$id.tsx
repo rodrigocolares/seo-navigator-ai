@@ -49,7 +49,7 @@ function ScanDetailPage() {
   const scores = (scan.scores ?? {}) as Record<string, number>;
   const ai = scan.ai_report as AIReport | null;
 
-  const running = scan.status === "crawling" || scan.status === "analyzing";
+  const running = ["queued", "running", "crawling", "analyzing"].includes(scan.status);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
