@@ -100,7 +100,7 @@ export const startScan = createServerFn({ method: "POST" })
 
       await supabase
         .from("scans")
-        .update({ status: "analyzing", pages_crawled: crawl.pages.length, scores })
+        .update({ status: "analyzing", pages_crawled: crawl.pages.length, scores: scores as unknown as never })
         .eq("id", scan.id);
 
       const aiReport = await generateAIReport(parsed.toString(), scores, crawl);

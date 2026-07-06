@@ -119,7 +119,12 @@ function DashboardPage() {
         ) : (
           <div className="grid gap-3">
             {scans.map((s) => (
-              <ScanRow key={s.id} scan={s} onOpen={() => navigate({ to: "/scans/$id", params: { id: s.id } })} />
+              <ScanRow
+                key={s.id}
+                scan={{ ...s, scores: (s.scores as { overall?: number } | null) }}
+                onOpen={() => navigate({ to: "/scans/$id", params: { id: s.id } })}
+              />
+
             ))}
           </div>
         )}
