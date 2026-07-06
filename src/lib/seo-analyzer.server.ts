@@ -11,7 +11,7 @@ interface FetchedPage {
   finalUrl: string;
 }
 
-async function fetchPage(url: string, timeoutMs = 12000): Promise<FetchedPage | null> {
+export async function fetchPage(url: string, timeoutMs = 12000): Promise<FetchedPage | null> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   const started = Date.now();
