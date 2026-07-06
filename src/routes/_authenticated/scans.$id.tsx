@@ -5,8 +5,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { getScanDetail } from "@/lib/seo-scan.functions";
 import { ScoreRing } from "@/components/ScoreRing";
 import { ExportModal } from "@/components/ExportModal";
+import { ScanProgressPanel } from "@/components/ScanProgressPanel";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles, Download, GitCompare } from "lucide-react";
+import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles, Download, GitCompare, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
