@@ -414,3 +414,123 @@ function DomainRow(props: {
     </div>
   );
 }
+
+function CopyableUri({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+        <code className="flex-1 truncate text-xs">{value}</code>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(value);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+              toast.success("URL copiada");
+            } catch {
+              toast.error("Não foi possível copiar");
+            }
+          }}
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground"
+          aria-label="Copiar URL"
+        >
+          {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function detectEnvironment(host: string): string {
+  if (host.includes("id-preview--")) return "Preview Lovable";
+  if (host.endsWith("-dev.lovable.app")) return "Dev Lovable";
+  if (host.endsWith(".lovable.app")) return "Produção Lovable";
+  if (host === "localhost" || host.startsWith("127.0.0.1") || host.startsWith("localhost:"))
+    return "Local";
+  return "Domínio customizado";
+}
+
+function OAuthSetupHelp({ lastError }: { lastError: string | null }) {
+  const [origin, setOrigin] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(!!lastError);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") setOrigin(window.location.origin);
+  }, []);
+  useEffect(() => {
+    if (lastError) setOpen(true);
+  }, [lastError]);
+
+  if (!origin) return null;
+  const host = origin.replace(/^https?:\/\//, "");
+  const env = detectEnvironment(host);
+  const redirectUri = `${origin}/api/public/google/callback`;
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="mb-6">
+      <div className="glass-card rounded-2xl p-5">
+        <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 text-left">
+          <div className="flex items-center gap-2">
+            <Settings2 className="h-4 w-4 text-primary" />
+            <div>
+              <p className="text-sm font-semibold">Diagnóstico e configuração OAuth</p>
+              <p className="text-xs text-muted-foreground">
+                Copie estas URLs no Google Cloud &rarr; Credentials &rarr; OAuth 2.0 Client.
+              </p>
+            </div>
+          </div>
+          <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-4 space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <p className="text-xs text-muted-foreground">Ambiente detectado</p>
+              <p className="text-sm font-medium">{env}</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <p className="text-xs text-muted-foreground">Origin atual</p>
+              <p className="truncate text-sm font-medium">{origin}</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Authorized JavaScript Origins
+            </p>
+            <CopyableUri label="Adicionar em JavaScript Origins" value={origin} />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Authorized Redirect URIs
+            </p>
+            <CopyableUri label="Adicionar em Redirect URIs" value={redirectUri} />
+            <p className="text-xs text-muted-foreground">
+              A mesma URL é usada para Search Console, Analytics e "Conectar ambos". Cadastre também as URLs de preview,
+              dev e produção (e do seu domínio customizado, se houver) — cada ambiente precisa constar na lista.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border/60 bg-background/40 p-3 text-xs">
+            <p className="font-medium text-foreground">Escopos solicitados</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted-foreground">
+              <li>openid email profile</li>
+              <li>https://www.googleapis.com/auth/webmasters.readonly (Search Console)</li>
+              <li>https://www.googleapis.com/auth/analytics.readonly (Analytics 4)</li>
+            </ul>
+          </div>
+
+          {lastError && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+              <p className="font-medium">Último erro OAuth</p>
+              <p className="mt-1 break-all">{lastError}</p>
+            </div>
+          )}
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+}
