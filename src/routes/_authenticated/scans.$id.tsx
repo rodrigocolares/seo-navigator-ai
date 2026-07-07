@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles, Download, GitCompare, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { isActiveStatus, statusLabel } from "@/lib/scan-status";
 
 export const Route = createFileRoute("/_authenticated/scans/$id")({
   component: ScanDetailPage,
@@ -33,7 +34,7 @@ function ScanDetailPage() {
     queryFn: () => fn({ data: { id } }),
     refetchInterval: (q) => {
       const status = (q.state.data as { scan: { status: string } } | undefined)?.scan.status;
-      return status && ["queued", "running", "crawling", "analyzing"].includes(status) ? 4000 : false;
+      return isActiveStatus(status) ? 4000 : false;
     },
   });
 
@@ -62,7 +63,7 @@ function ScanDetailPage() {
   const scores = (scan.scores ?? {}) as Record<string, number>;
   const ai = scan.ai_report as AIReport | null;
 
-  const running = ["queued", "running", "crawling", "analyzing"].includes(scan.status);
+  const running = isActiveStatus(scan.status);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -84,14 +85,14 @@ function ScanDetailPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Link to="/compare" search={{ b: scan.id, host: scan.host }}>
-              <Button variant="secondary" disabled={scan.status !== "completed"}>
+              <Button variant="secondary" disabled={scan.status !== "completed" || scan.pages_crawled === 0}>
                 <GitCompare className="mr-2 h-4 w-4" />
                 Comparar Análises
               </Button>
             </Link>
             <Button
               onClick={() => setExportOpen(true)}
-              disabled={scan.status !== "completed"}
+              disabled={scan.status !== "completed" || scan.pages_crawled === 0}
               title={scan.status !== "completed" ? "Relatório disponível após a conclusão da análise" : "Exportar Relatório"}
             >
               <Download className="mr-2 h-4 w-4" />
@@ -309,7 +310,7 @@ function StatusBadge({ status }: { status: string }) {
     analyzing: "bg-primary/15 text-primary",
     queued: "bg-muted text-muted-foreground",
   };
-  return <Badge className={map[status] ?? map.queued}>{status}</Badge>;
+  return <Badge className={map[status] ?? map.queued}>{statusLabel(status)}</Badge>;
 }
 
 function SeverityBadge({ severity }: { severity: string }) {
