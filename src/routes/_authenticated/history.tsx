@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { listComparableScans } from "@/lib/compare.functions";
 import { Button } from "@/components/ui/button";
 import { Loader2, GitCompare, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { statusLabel } from "@/lib/scan-status";
 
 export const Route = createFileRoute("/_authenticated/history")({
   component: HistoryPage,
@@ -94,7 +95,7 @@ function HistoryPage() {
                           <td className="p-3 text-center text-muted-foreground">{new Date(s.created_at).toLocaleString("pt-BR")}</td>
                           <td className="p-3 text-center">{s.pages_crawled}</td>
                           <td className="p-3 text-center font-semibold">{scores?.overall ? Math.round(scores.overall) : "—"}</td>
-                          <td className="p-3 text-center capitalize">{s.status}</td>
+                          <td className="p-3 text-center">{statusLabel(s.status)}</td>
                         </tr>
                       );
                     })}
