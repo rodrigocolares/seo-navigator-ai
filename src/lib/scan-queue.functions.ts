@@ -51,9 +51,14 @@ export const startAsyncScan = createServerFn({ method: "POST" })
     try {
       const host = getRequestHost();
       const workerSecret = process.env.WORKER_SECRET;
-      if (host && workerSecret) {
-        // fire-and-forget
-        void fetch(`https://${host}/api/public/hooks/process-scan`, {
+      // The id-preview--<id>.lovable.app host is behind the Lovable auth
+      // bridge, so /api/public/* is not reachable server-to-server there.
+      // Rewrite to the stable dev URL project--<id>-dev.lovable.app.
+      let target = host;
+      const m = host?.match(/^id-preview--([0-9a-f-]+)\.lovable\.app$/i);
+      if (m) target = `project--${m[1]}-dev.lovable.app`;
+      if (target && workerSecret) {
+        void fetch(`https://${target}/api/public/hooks/process-scan`, {
           method: "POST",
           headers: {
             "content-type": "application/json",
@@ -65,6 +70,7 @@ export const startAsyncScan = createServerFn({ method: "POST" })
     } catch {
       /* ignore */
     }
+
 
     return { id: scan.id };
   });
