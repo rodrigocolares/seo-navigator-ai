@@ -42,13 +42,16 @@ export const Route = createFileRoute("/_authenticated/integrations")({
   validateSearch: (s: Record<string, unknown>) => ({
     google_connected: typeof s.google_connected === "string" ? s.google_connected : undefined,
     google_error: typeof s.google_error === "string" ? s.google_error : undefined,
+    google_error_description:
+      typeof s.google_error_description === "string" ? s.google_error_description : undefined,
   }),
   component: IntegrationsPage,
 });
 
 function IntegrationsPage() {
   const qc = useQueryClient();
-  const { google_connected, google_error } = Route.useSearch();
+  const { google_connected, google_error, google_error_description } = Route.useSearch();
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const listConnFn = useServerFn(listGoogleConnections);
   const listSitesFn = useServerFn(listGoogleSites);
