@@ -62,7 +62,7 @@ export const Route = createFileRoute("/api/public/google/callback")({
             .eq("google_account_email", userInfo.email)
             .maybeSingle();
 
-          const upsertPayload: Record<string, unknown> = {
+          const upsertPayload = {
             user_id: parsed.uid,
             google_account_email: userInfo.email,
             google_account_sub: userInfo.sub,
@@ -71,16 +71,12 @@ export const Route = createFileRoute("/api/public/google/callback")({
             scopes,
             expires_at: expiresAt,
             status: "active",
-            error_message: null,
+            error_message: null as string | null,
+            refresh_token_encrypted: (refreshEnc?.data ?? existing?.refresh_token_encrypted ?? null) as
+              | string
+              | null,
+            refresh_iv: (refreshEnc?.iv ?? existing?.refresh_iv ?? null) as string | null,
           };
-          // Preserve prior refresh token if Google didn't return a new one this time
-          if (refreshEnc) {
-            upsertPayload.refresh_token_encrypted = refreshEnc.data;
-            upsertPayload.refresh_iv = refreshEnc.iv;
-          } else if (existing?.refresh_token_encrypted) {
-            upsertPayload.refresh_token_encrypted = existing.refresh_token_encrypted;
-            upsertPayload.refresh_iv = existing.refresh_iv;
-          }
 
           const { error: upsertErr } = await supabaseAdmin
             .from("google_connections")
