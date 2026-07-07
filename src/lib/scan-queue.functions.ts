@@ -90,6 +90,32 @@ export const getScanProgress = createServerFn({ method: "POST" })
       .single();
     if (!scan) throw new Error("Análise não encontrada");
 
+    const FINAL = ["completed", "failed", "cancelled"];
+    const ACTIVE = ["queued", "running", "crawling", "analyzing"];
+    const status = scan.status ?? "queued";
+    const isFinal = FINAL.includes(status);
+    const isActive = ACTIVE.includes(status);
+
+    // Terminal states: don't count jobs, don't compute ETA, don't expose current_url.
+    if (isFinal) {
+      const message =
+        status === "cancelled"
+          ? "Análise cancelada pelo usuário."
+          : status === "failed"
+            ? "Análise finalizada com falha."
+            : "Análise concluída.";
+      return {
+        ...scan,
+        current_url: null,
+        estimated_remaining_seconds: null,
+        jobs_pending: 0,
+        eta: null,
+        isActive: false,
+        isFinal: true,
+        message,
+      };
+    }
+
     const { count: pending } = await supabase
       .from("scan_jobs")
       .select("id", { count: "exact", head: true })
@@ -106,7 +132,14 @@ export const getScanProgress = createServerFn({ method: "POST" })
       eta = Math.round(perPage * (discovered - processed));
     }
 
-    return { ...scan, jobs_pending: pending ?? 0, eta };
+    return {
+      ...scan,
+      jobs_pending: pending ?? 0,
+      eta,
+      isActive,
+      isFinal: false,
+      message: null,
+    };
   });
 
 export const cancelScan = createServerFn({ method: "POST" })
