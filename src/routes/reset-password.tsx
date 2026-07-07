@@ -13,34 +13,71 @@ export const Route = createFileRoute("/reset-password")({
   component: ResetPasswordPage,
 });
 
+type Status = "validating" | "ready" | "invalid";
+
 function ResetPasswordPage() {
   const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [invalid, setInvalid] = useState(false);
+  const [status, setStatus] = useState<Status>("validating");
 
   useEffect(() => {
-    // Supabase JS parses the recovery hash automatically and fires PASSWORD_RECOVERY.
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
-        setReady(true);
+    let cancelled = false;
+
+    // Listen for PASSWORD_RECOVERY / SIGNED_IN events (hash-token flow).
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+      if ((event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") && session) {
+        setStatus("ready");
       }
     });
-    // Fallback: check for existing session (link already consumed on this page).
-    supabase.auth.getSession().then(({ data: s }) => {
-      if (s.session) setReady(true);
-      else {
-        // If no session materialized shortly after mount, treat link as invalid.
-        setTimeout(() => {
-          supabase.auth.getSession().then(({ data: s2 }) => {
-            if (!s2.session) setInvalid(true);
-          });
-        }, 1500);
+
+    (async () => {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get("code");
+      const hash = url.hash || "";
+      const hasHashToken = hash.includes("access_token=") || hash.includes("type=recovery");
+
+      console.debug("[reset-password] code present:", !!code, "hash present:", hasHashToken);
+
+      try {
+        if (code) {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (cancelled) return;
+          if (error || !data.session) {
+            console.debug("[reset-password] exchange failed");
+            setStatus("invalid");
+            return;
+          }
+          // Clean sensitive params from URL.
+          window.history.replaceState({}, "", url.pathname);
+          setStatus("ready");
+          return;
+        }
+
+        // Hash-token flow: Supabase parses the hash automatically on load.
+        // Give it a tick, then check for a session.
+        await new Promise((r) => setTimeout(r, 300));
+        const { data: s } = await supabase.auth.getSession();
+        if (cancelled) return;
+        if (s.session) {
+          if (hasHashToken) window.history.replaceState({}, "", url.pathname);
+          setStatus("ready");
+        } else {
+          setStatus("invalid");
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.debug("[reset-password] validation error");
+        setStatus("invalid");
       }
-    });
-    return () => data.subscription.unsubscribe();
+    })();
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const submit = async (e: React.FormEvent) => {
@@ -54,9 +91,17 @@ function ResetPasswordPage() {
       return;
     }
     setLoading(true);
+    const { data: s } = await supabase.auth.getSession();
+    if (!s.session) {
+      setLoading(false);
+      setStatus("invalid");
+      toast.error("O link de recuperação é inválido ou expirou. Solicite um novo link.");
+      return;
+    }
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) {
+      console.debug("[reset-password] updateUser error:", error.message);
       toast.error("Não foi possível atualizar sua senha. Solicite um novo link.");
       return;
     }
@@ -77,7 +122,7 @@ function ResetPasswordPage() {
         </div>
 
         <div className="glass-card rounded-2xl p-6">
-          {invalid && !ready ? (
+          {status === "invalid" ? (
             <div className="space-y-4 text-center">
               <AlertCircle className="mx-auto h-8 w-8 text-destructive" />
               <p className="text-sm text-muted-foreground">
@@ -87,7 +132,7 @@ function ResetPasswordPage() {
                 <Link to="/auth">Voltar para login</Link>
               </Button>
             </div>
-          ) : !ready ? (
+          ) : status === "validating" ? (
             <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Validando link...
             </div>
@@ -114,7 +159,8 @@ function ResetPasswordPage() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Atualizar senha
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {loading ? "Atualizando senha..." : "Atualizar senha"}
               </Button>
             </form>
           )}
