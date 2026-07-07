@@ -77,6 +77,27 @@ function AuthPage() {
     navigate({ to: "/dashboard" });
   };
 
+  const sendResetLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = forgotEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      toast.error("Informe um e-mail válido.");
+      return;
+    }
+    setForgotLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(value, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotLoading(false);
+    if (error) {
+      toast.error("Não foi possível enviar o link agora. Tente novamente em alguns minutos.");
+      return;
+    }
+    toast.success("Se este e-mail estiver cadastrado, você receberá um link para redefinir sua senha.");
+    setForgotOpen(false);
+    setForgotEmail("");
+  };
+
   return (
     <div className="min-h-screen">
       <AppHeader />
