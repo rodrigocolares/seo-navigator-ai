@@ -126,18 +126,46 @@ export const cancelScan = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const now = new Date().toISOString();
+
+    // 1) Mark scan as cancelled — worker checks this before every job/enqueue.
     await supabaseAdmin
       .from("scans")
       .update({
         status: "cancelled",
-        cancelled_at: new Date().toISOString(),
-        error_message: "Análise cancelada pelo usuário.",
+        cancelled_at: now,
+        current_url: null,
+        estimated_remaining_seconds: null,
+        error_message: null,
       })
       .eq("id", data.id);
+
+    // 2) Cancel every non-terminal job atomically (queued, retrying, running).
     await supabaseAdmin
       .from("scan_jobs")
-      .update({ status: "cancelled", updated_at: new Date().toISOString() })
+      .update({
+        status: "cancelled",
+        completed_at: now,
+        error_message: "Cancelado pelo usuário",
+        locked_at: null,
+        locked_by: null,
+        updated_at: now,
+      })
       .eq("scan_id", data.id)
-      .in("status", ["queued", "retrying"]);
+      .in("status", ["queued", "retrying", "running"]);
+
+    // 3) Best-effort audit log.
+    try {
+      await supabaseAdmin.from("scan_job_logs").insert({
+        scan_id: data.id,
+        job_id: null,
+        level: "info",
+        message: "Scan cancelado pelo usuário — jobs pendentes cancelados",
+        context: { user_id: userId } as never,
+      });
+    } catch {
+      /* logging must never fail cancel */
+    }
+
     return { ok: true };
   });

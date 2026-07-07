@@ -56,6 +56,17 @@ async function enqueue(
   priority = 100,
   run_after_seconds = 0,
 ) {
+  // Guard: never enqueue new work for a scan that is no longer active.
+  const { data: scan } = await supabaseAdmin
+    .from("scans")
+    .select("status")
+    .eq("id", scan_id)
+    .maybeSingle();
+  const status = scan?.status ?? "";
+  if (["cancelled", "completed", "failed"].includes(status)) {
+    await log(scan_id, null, "info", `enqueue ${job_type} ignorado — scan ${status}`);
+    return;
+  }
   const run_after = new Date(Date.now() + run_after_seconds * 1000).toISOString();
   await supabaseAdmin.from("scan_jobs").insert({
     scan_id,
@@ -505,7 +516,46 @@ export interface ProcessResult {
 
 const MAX_MS = 45_000;
 
+/**
+ * Cancel any orphan jobs — pending/running work whose parent scan is no
+ * longer active (cancelled/completed/failed). Runs at the top of every
+ * worker cycle to keep the queue self-healing.
+ */
+async function reconcileOrphanJobs(): Promise<number> {
+  // Find non-terminal jobs belonging to inactive scans.
+  const { data: orphans } = await supabaseAdmin
+    .from("scan_jobs")
+    .select("id, scan_id, scans!inner(status)")
+    .in("status", ["queued", "retrying", "running"])
+    .in("scans.status", ["cancelled", "completed", "failed"])
+    .limit(200);
+  const rows = (orphans ?? []) as { id: string; scan_id: string; scans: { status: string } }[];
+  if (rows.length === 0) return 0;
+  const now = new Date().toISOString();
+  await supabaseAdmin
+    .from("scan_jobs")
+    .update({
+      status: "cancelled",
+      completed_at: now,
+      error_message: "Cancelado — scan não está mais ativo",
+      locked_at: null,
+      locked_by: null,
+      updated_at: now,
+    })
+    .in("id", rows.map((r) => r.id));
+  const scanIds = Array.from(new Set(rows.map((r) => r.scan_id)));
+  for (const sid of scanIds) {
+    await log(sid, null, "info", "Reconcile: jobs órfãos cancelados", {
+      count: rows.filter((r) => r.scan_id === sid).length,
+    });
+  }
+  return rows.length;
+}
+
 export async function processQueueBatch(batchSize = 5, workerId = "worker"): Promise<ProcessResult> {
+  // Self-healing: cancel orphan jobs before doing anything else.
+  await reconcileOrphanJobs();
+
   const { data: jobs, error } = await supabaseAdmin.rpc("claim_scan_jobs", {
     _limit: batchSize,
     _worker: workerId,
@@ -517,6 +567,27 @@ export async function processQueueBatch(batchSize = 5, workerId = "worker"): Pro
 
   for (const job of claimed) {
     if (Date.now() - started > MAX_MS) break;
+
+    // Per-job cancel check: if the scan was cancelled between claim and
+    // execution, mark the job cancelled and skip.
+    if (await isScanCancelled(job.scan_id)) {
+      const now = new Date().toISOString();
+      await supabaseAdmin
+        .from("scan_jobs")
+        .update({
+          status: "cancelled",
+          completed_at: now,
+          error_message: "Cancelado pelo usuário",
+          locked_at: null,
+          locked_by: null,
+          updated_at: now,
+        })
+        .eq("id", job.id);
+      await log(job.scan_id, job.id, "info", `Job ${job.job_type} abandonado — scan cancelado`);
+      results.push({ id: job.id, type: job.job_type, ok: true });
+      continue;
+    }
+
     try {
       await runJob(job);
       await completeJob(job.id);
