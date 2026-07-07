@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Radar, ArrowRight, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, Radar, ArrowRight, Clock, CheckCircle2, XCircle, Ban } from "lucide-react";
+import { isActiveStatus, statusLabel } from "@/lib/scan-status";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -27,7 +28,7 @@ function DashboardPage() {
     queryKey: ["scans"],
     queryFn: () => listFn(),
     refetchInterval: (q) =>
-      (q.state.data as { status: string }[] | undefined)?.some((s) => s.status === "crawling" || s.status === "analyzing")
+      (q.state.data as { status: string }[] | undefined)?.some((s) => isActiveStatus(s.status))
         ? 4000
         : false,
   });
@@ -155,8 +156,12 @@ function ScanRow({
       <CheckCircle2 className="h-4 w-4 text-[oklch(0.75_0.16_155)]" />
     ) : scan.status === "failed" ? (
       <XCircle className="h-4 w-4 text-destructive" />
-    ) : (
+    ) : scan.status === "cancelled" ? (
+      <Ban className="h-4 w-4 text-muted-foreground" />
+    ) : isActiveStatus(scan.status) ? (
       <Loader2 className="h-4 w-4 animate-spin text-primary" />
+    ) : (
+      <XCircle className="h-4 w-4 text-muted-foreground" />
     );
   const overall = scan.scores?.overall ?? null;
   return (
@@ -171,7 +176,7 @@ function ScanRow({
         <div className="truncate font-medium">{scan.host}</div>
         <div className="mt-0.5 flex items-center gap-3 text-xs text-muted-foreground">
           {statusIcon}
-          <span className="capitalize">{scan.status}</span>
+          <span>{statusLabel(scan.status)}</span>
           <span>·</span>
           <span>{scan.pages_crawled} páginas</span>
           <span>·</span>
