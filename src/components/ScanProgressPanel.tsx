@@ -49,10 +49,6 @@ export function ScanProgressPanel({ scanId }: { scanId: string }) {
   const processed = data.pages_processed ?? 0;
   const failed = data.pages_failed ?? 0;
 
-  const progress = data.progress ?? 0;
-  const discovered = data.pages_discovered ?? 0;
-  const processed = data.pages_processed ?? 0;
-  const failed = data.pages_failed ?? 0;
 
   const queuedTooLong =
     data.status === "queued" &&
