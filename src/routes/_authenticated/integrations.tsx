@@ -80,15 +80,20 @@ function IntegrationsPage() {
         missing_code: "Retorno do Google incompleto. Tente novamente.",
         save_failed: "Não foi possível salvar a conexão. Tente novamente.",
         callback_failed: "Falha no retorno do Google. Verifique as configurações OAuth.",
+        redirect_uri_mismatch:
+          "As credenciais OAuth do Google ainda não possuem a URL deste ambiente cadastrada. Verifique as Redirect URIs autorizadas no Google Cloud (veja o painel de diagnóstico abaixo).",
+        invalid_client: "Client ID/Secret inválido no Google Cloud. Revise as credenciais OAuth.",
       };
       toast.error(messages[google_error] ?? `Erro na conexão: ${google_error}`);
+      setLastError(
+        google_error_description ? `${google_error}: ${google_error_description}` : google_error,
+      );
     }
     if (google_connected || google_error) {
-      // Clear URL and refetch
       qc.invalidateQueries({ queryKey: ["google-connections"] });
       window.history.replaceState({}, "", "/integrations");
     }
-  }, [google_connected, google_error, qc]);
+  }, [google_connected, google_error, google_error_description, qc]);
 
   const gscConn = useMemo(
     () => connections.find((c) => c.scopes?.some((s: string) => s.includes("webmasters"))),
