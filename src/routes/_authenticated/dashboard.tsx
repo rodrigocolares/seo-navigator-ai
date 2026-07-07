@@ -38,7 +38,7 @@ function DashboardPage() {
     onSuccess: (res) => {
       toast.success("Análise adicionada à fila");
       qc.invalidateQueries({ queryKey: ["scans"] });
-      navigate({ to: "/scans/$id", params: { id: res.id } });
+      navigate({ to: "/scans/$id", params: { id: res.id }, search: { from: "dashboard" } });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -125,7 +125,7 @@ function DashboardPage() {
               <ScanRow
                 key={s.id}
                 scan={{ ...s, scores: (s.scores as { overall?: number } | null) }}
-                onOpen={() => navigate({ to: "/scans/$id", params: { id: s.id } })}
+                onOpen={() => navigate({ to: "/scans/$id", params: { id: s.id }, search: { from: "dashboard" } })}
               />
 
             ))}

@@ -51,7 +51,7 @@ function HistoryPage() {
                       {e.previousScore != null && <span className="text-xs text-muted-foreground">antes {e.previousScore}</span>}
                     </div>
                     <div className="mt-3 flex gap-2">
-                      <Link to="/scans/$id" params={{ id: e.latestId }} className="flex-1">
+                      <Link to="/scans/$id" params={{ id: e.latestId }} search={{ from: "history" }} className="flex-1">
                         <Button size="sm" variant="ghost" className="w-full">Ver análise</Button>
                       </Link>
                       {e.previousId && (
@@ -88,7 +88,7 @@ function HistoryPage() {
                       return (
                         <tr key={s.id} className="border-t border-border/40 hover:bg-card/40">
                           <td className="p-3">
-                            <Link to="/scans/$id" params={{ id: s.id }} className="font-medium hover:text-primary">
+                            <Link to="/scans/$id" params={{ id: s.id }} search={{ from: "history" }} className="font-medium hover:text-primary">
                               {s.host}
                             </Link>
                           </td>
