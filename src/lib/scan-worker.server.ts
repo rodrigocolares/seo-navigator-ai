@@ -56,6 +56,17 @@ async function enqueue(
   priority = 100,
   run_after_seconds = 0,
 ) {
+  // Guard: never enqueue new work for a scan that is no longer active.
+  const { data: scan } = await supabaseAdmin
+    .from("scans")
+    .select("status")
+    .eq("id", scan_id)
+    .maybeSingle();
+  const status = scan?.status ?? "";
+  if (["cancelled", "completed", "failed"].includes(status)) {
+    await log(scan_id, null, "info", `enqueue ${job_type} ignorado — scan ${status}`);
+    return;
+  }
   const run_after = new Date(Date.now() + run_after_seconds * 1000).toISOString();
   await supabaseAdmin.from("scan_jobs").insert({
     scan_id,
