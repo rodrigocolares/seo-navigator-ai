@@ -326,30 +326,6 @@ GET /report/json
 
 ---
 
-# 🚀 Instalação
-
-```bash
-git clone https://github.com/seuusuario/seo-insight-ai.git
-
-cd seo-insight-ai
-
-composer install
-
-cp .env.example .env
-```
-
-Configure o arquivo `.env` com as credenciais do banco de dados, Redis e demais serviços necessários.
-
-Execute as migrations:
-
-```bash
-php artisan migrate
-```
-
-> Caso o projeto utilize um framework MVC diferente do Laravel, adapte este comando conforme a estrutura escolhida.
-
----
-
 # 📌 Roadmap
 
 * ✅ Auditoria técnica
