@@ -134,6 +134,18 @@ function AuthPage() {
               <form onSubmit={signIn} className="space-y-3 pt-4">
                 <Field label="E-mail" type="email" value={email} onChange={setEmail} required />
                 <Field label="Senha" type="password" value={password} onChange={setPassword} required />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setForgotOpen(true);
+                    }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Entrar
                 </Button>
