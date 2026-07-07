@@ -314,25 +314,7 @@ GET /report/json
 
 ---
 
-# 🛠️ Tecnologias
-
-## Backend
-
-* PHP 8.3
-* MySQL 8
-* Composer
-* Guzzle HTTP
-* cURL
-* DOMDocument
-* Redis
-* Queue Workers
-
-## Frontend
-
-* HTML5
-* CSS3
-* Bootstrap 5
-* JavaScript ES6
+# 🛠️ Tecnologia
 
 ## Arquitetura
 
