@@ -49,12 +49,32 @@ export function ScanProgressPanel({ scanId }: { scanId: string }) {
   const processed = data.pages_processed ?? 0;
   const failed = data.pages_failed ?? 0;
 
-  const label =
-    data.status === "queued"
-      ? "Na fila"
-      : data.status === "analyzing"
-        ? "IA analisando"
-        : "Rastreando";
+  const progress = data.progress ?? 0;
+  const discovered = data.pages_discovered ?? 0;
+  const processed = data.pages_processed ?? 0;
+  const failed = data.pages_failed ?? 0;
+
+  const queuedTooLong =
+    data.status === "queued" &&
+    data.started_at &&
+    Date.now() - new Date(data.started_at).getTime() > 60_000;
+
+  let label = "Rastreando";
+  let hint = data.current_url ?? "Preparando rastreamento…";
+  if (data.status === "queued") {
+    label = "Na fila";
+    hint = queuedTooLong
+      ? "A análise está demorando para iniciar. O worker pode estar ocupado ou aguardando o próximo ciclo do cron."
+      : "Análise na fila. Aguardando o worker iniciar…";
+  } else if (data.status === "analyzing") {
+    label = "IA analisando";
+    hint = "Gerando parecer da IA…";
+  } else if (data.status === "running") {
+    if (progress < 10) hint = "Descobrindo URLs do site…";
+    else if (progress < 85) hint = data.current_url ?? "Analisando páginas…";
+    else if (progress < 92) hint = "Calculando scores…";
+    else hint = "Gerando parecer da IA…";
+  }
 
   return (
     <div className="glass-card mt-6 rounded-2xl p-5">
@@ -67,11 +87,10 @@ export function ScanProgressPanel({ scanId }: { scanId: string }) {
           )}
           <div>
             <div className="text-sm font-semibold">{label}</div>
-            <div className="text-xs text-muted-foreground">
-              {data.current_url ?? "Preparando rastreamento…"}
-            </div>
+            <div className="text-xs text-muted-foreground">{hint}</div>
           </div>
         </div>
+
         <Button
           size="sm"
           variant="ghost"
