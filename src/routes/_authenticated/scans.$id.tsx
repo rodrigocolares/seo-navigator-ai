@@ -34,6 +34,7 @@ interface AIReport {
 
 function ScanDetailPage() {
   const { id } = Route.useParams();
+  const { from } = Route.useSearch();
   const [exportOpen, setExportOpen] = useState(false);
   const fn = useServerFn(getScanDetail);
   const { data, isLoading } = useQuery({
@@ -59,9 +60,9 @@ function ScanDetailPage() {
         <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground" />
         <h1 className="mt-4 text-xl font-semibold">Análise não encontrada</h1>
         <p className="mt-2 text-sm text-muted-foreground">Ela pode ter sido removida ou você não tem permissão para visualizá-la.</p>
-        <Link to="/dashboard" className="mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline">
-          <ArrowLeft className="h-3 w-3" /> Voltar ao dashboard
-        </Link>
+        <div className="mt-4 flex justify-center">
+          <PageBackButton origin={from} defaultRoute="/dashboard" label="Voltar ao dashboard" />
+        </div>
       </main>
     );
   }
@@ -74,9 +75,9 @@ function ScanDetailPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <Link to="/dashboard" className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-3 w-3" /> Voltar
-      </Link>
+      <div className="mb-4">
+        <PageBackButton origin={from} defaultRoute="/dashboard" />
+      </div>
 
       <div className="glass-card rounded-2xl p-6 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
