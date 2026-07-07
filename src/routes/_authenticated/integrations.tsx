@@ -108,7 +108,12 @@ function IntegrationsPage() {
     mutationFn: async (provider: "gsc" | "ga4" | "both") =>
       startOAuthFn({ data: { provider, returnTo: "/integrations" } }),
     onSuccess: ({ authUrl }) => {
-      window.location.href = authUrl;
+      // Escape iframes (Lovable preview) — Google refuses OAuth inside frames.
+      try {
+        (window.top ?? window).location.href = authUrl;
+      } catch {
+        window.location.href = authUrl;
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
