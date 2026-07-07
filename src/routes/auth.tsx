@@ -165,6 +165,30 @@ function AuthPage() {
           </Tabs>
         </div>
       </main>
+
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recuperar senha</DialogTitle>
+            <DialogDescription>
+              Informe seu e-mail cadastrado para receber um link de redefinição de senha.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={sendResetLink} className="space-y-3">
+            <Field label="E-mail" type="email" value={forgotEmail} onChange={setForgotEmail} required />
+            <Button type="submit" className="w-full" disabled={forgotLoading}>
+              {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Enviar link de recuperação
+            </Button>
+            <button
+              type="button"
+              onClick={() => setForgotOpen(false)}
+              className="mx-auto block text-xs text-muted-foreground hover:underline"
+            >
+              Voltar para login
+            </button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
