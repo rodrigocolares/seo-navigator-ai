@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      domain_integrations: {
+        Row: {
+          created_at: string
+          domain: string
+          ga4_property_id: string | null
+          id: string
+          search_console_site_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          ga4_property_id?: string | null
+          id?: string
+          search_console_site_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          ga4_property_id?: string | null
+          id?: string
+          search_console_site_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_integrations_ga4_property_id_fkey"
+            columns: ["ga4_property_id"]
+            isOneToOne: false
+            referencedRelation: "google_analytics_properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "domain_integrations_search_console_site_id_fkey"
+            columns: ["search_console_site_id"]
+            isOneToOne: false
+            referencedRelation: "google_search_console_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       export_logs: {
         Row: {
           created_at: string
@@ -54,6 +99,201 @@ export type Database = {
             columns: ["scan_id"]
             isOneToOne: false
             referencedRelation: "scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_analytics_properties: {
+        Row: {
+          account_id: string | null
+          account_name: string | null
+          connection_id: string
+          created_at: string
+          currency_code: string | null
+          display_name: string | null
+          id: string
+          property_id: string
+          property_name: string | null
+          time_zone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          account_name?: string | null
+          connection_id: string
+          created_at?: string
+          currency_code?: string | null
+          display_name?: string | null
+          id?: string
+          property_id: string
+          property_name?: string | null
+          time_zone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          account_name?: string | null
+          connection_id?: string
+          created_at?: string
+          currency_code?: string | null
+          display_name?: string | null
+          id?: string
+          property_id?: string
+          property_name?: string | null
+          time_zone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_analytics_properties_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "google_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_connections: {
+        Row: {
+          access_token_encrypted: string
+          created_at: string
+          error_message: string | null
+          expires_at: string
+          google_account_email: string
+          google_account_sub: string | null
+          id: string
+          last_sync_at: string | null
+          refresh_iv: string | null
+          refresh_token_encrypted: string | null
+          scopes: string[]
+          status: string
+          token_iv: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token_encrypted: string
+          created_at?: string
+          error_message?: string | null
+          expires_at: string
+          google_account_email: string
+          google_account_sub?: string | null
+          id?: string
+          last_sync_at?: string | null
+          refresh_iv?: string | null
+          refresh_token_encrypted?: string | null
+          scopes?: string[]
+          status?: string
+          token_iv: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token_encrypted?: string
+          created_at?: string
+          error_message?: string | null
+          expires_at?: string
+          google_account_email?: string
+          google_account_sub?: string | null
+          id?: string
+          last_sync_at?: string | null
+          refresh_iv?: string | null
+          refresh_token_encrypted?: string | null
+          scopes?: string[]
+          status?: string
+          token_iv?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      google_search_console_sites: {
+        Row: {
+          connection_id: string
+          created_at: string
+          id: string
+          permission_level: string | null
+          site_url: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          id?: string
+          permission_level?: string | null
+          site_url: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          id?: string
+          permission_level?: string | null
+          site_url?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_search_console_sites_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "google_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      google_sync_logs: {
+        Row: {
+          completed_at: string | null
+          connection_id: string | null
+          created_at: string
+          domain: string | null
+          error_message: string | null
+          id: string
+          integration_type: string
+          records_synced: number
+          started_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          connection_id?: string | null
+          created_at?: string
+          domain?: string | null
+          error_message?: string | null
+          id?: string
+          integration_type: string
+          records_synced?: number
+          started_at?: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          connection_id?: string | null
+          created_at?: string
+          domain?: string | null
+          error_message?: string | null
+          id?: string
+          integration_type?: string
+          records_synced?: number
+          started_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_sync_logs_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "google_connections"
             referencedColumns: ["id"]
           },
         ]

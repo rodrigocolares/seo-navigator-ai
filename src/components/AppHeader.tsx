@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Radar, LogOut, History, LayoutDashboard } from "lucide-react";
+import { Radar, LogOut, History, LayoutDashboard, Plug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -38,6 +38,11 @@ export function AppHeader({ authenticated = false }: { authenticated?: boolean }
               <Button asChild variant="ghost" size="sm">
                 <Link to="/history">
                   <History className="mr-1.5 h-4 w-4" /> Histórico
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/integrations">
+                  <Plug className="mr-1.5 h-4 w-4" /> Integrações
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
