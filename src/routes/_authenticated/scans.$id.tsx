@@ -7,12 +7,19 @@ import { ScoreRing } from "@/components/ScoreRing";
 import { ExportModal } from "@/components/ExportModal";
 import { ScanProgressPanel } from "@/components/ScanProgressPanel";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles, Download, GitCompare, XCircle } from "lucide-react";
+import { Loader2, AlertCircle, ExternalLink, Sparkles, Download, GitCompare, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isActiveStatus, statusLabel } from "@/lib/scan-status";
+import { PageBackButton } from "@/components/PageBackButton";
+import { z } from "zod";
+
+const scanSearchSchema = z.object({
+  from: z.enum(["dashboard", "history"]).optional(),
+});
 
 export const Route = createFileRoute("/_authenticated/scans/$id")({
+  validateSearch: (s) => scanSearchSchema.parse(s),
   component: ScanDetailPage,
 });
 
@@ -27,6 +34,7 @@ interface AIReport {
 
 function ScanDetailPage() {
   const { id } = Route.useParams();
+  const { from } = Route.useSearch();
   const [exportOpen, setExportOpen] = useState(false);
   const fn = useServerFn(getScanDetail);
   const { data, isLoading } = useQuery({
@@ -52,9 +60,9 @@ function ScanDetailPage() {
         <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground" />
         <h1 className="mt-4 text-xl font-semibold">Análise não encontrada</h1>
         <p className="mt-2 text-sm text-muted-foreground">Ela pode ter sido removida ou você não tem permissão para visualizá-la.</p>
-        <Link to="/dashboard" className="mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline">
-          <ArrowLeft className="h-3 w-3" /> Voltar ao dashboard
-        </Link>
+        <div className="mt-4 flex justify-center">
+          <PageBackButton origin={from} defaultRoute="/dashboard" label="Voltar ao dashboard" />
+        </div>
       </main>
     );
   }
@@ -67,9 +75,9 @@ function ScanDetailPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <Link to="/dashboard" className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-3 w-3" /> Voltar
-      </Link>
+      <div className="mb-4">
+        <PageBackButton origin={from} defaultRoute="/dashboard" />
+      </div>
 
       <div className="glass-card rounded-2xl p-6 sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
