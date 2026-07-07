@@ -45,6 +45,19 @@ function ScanDetailPage() {
     );
   }
 
+  if (!data.scan) {
+    return (
+      <main className="mx-auto max-w-6xl px-4 py-20 text-center">
+        <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground" />
+        <h1 className="mt-4 text-xl font-semibold">Análise não encontrada</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Ela pode ter sido removida ou você não tem permissão para visualizá-la.</p>
+        <Link to="/dashboard" className="mt-4 inline-flex items-center gap-1 text-sm text-primary hover:underline">
+          <ArrowLeft className="h-3 w-3" /> Voltar ao dashboard
+        </Link>
+      </main>
+    );
+  }
+
   const { scan, pages, issues } = data;
   const scores = (scan.scores ?? {}) as Record<string, number>;
   const ai = scan.ai_report as AIReport | null;

@@ -146,11 +146,23 @@ export const getScanDetail = createServerFn({ method: "POST" })
   .inputValidator((v: unknown) => z.object({ id: z.string().uuid() }).parse(v))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const [{ data: scan }, { data: pages }, { data: issues }] = await Promise.all([
-      supabase.from("scans").select("*").eq("id", data.id).single(),
+    const { data: scan, error: scanErr } = await supabase
+      .from("scans")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (scanErr) {
+      console.error("[getScanDetail] scan query failed", scanErr);
+      throw new Error(scanErr.message);
+    }
+    if (!scan) {
+      return { scan: null, pages: [], issues: [] };
+    }
+    const [pagesRes, issuesRes] = await Promise.all([
       supabase.from("scan_pages").select("*").eq("scan_id", data.id).order("created_at"),
       supabase.from("scan_issues").select("*").eq("scan_id", data.id).order("severity"),
     ]);
-    if (!scan) throw new Error("Análise não encontrada");
-    return { scan, pages: pages ?? [], issues: issues ?? [] };
+    if (pagesRes.error) console.error("[getScanDetail] pages query failed", pagesRes.error);
+    if (issuesRes.error) console.error("[getScanDetail] issues query failed", issuesRes.error);
+    return { scan, pages: pagesRes.data ?? [], issues: issuesRes.data ?? [] };
   });
