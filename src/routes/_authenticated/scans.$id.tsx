@@ -7,12 +7,19 @@ import { ScoreRing } from "@/components/ScoreRing";
 import { ExportModal } from "@/components/ExportModal";
 import { ScanProgressPanel } from "@/components/ScanProgressPanel";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, ArrowLeft, ExternalLink, Sparkles, Download, GitCompare, XCircle } from "lucide-react";
+import { Loader2, AlertCircle, ExternalLink, Sparkles, Download, GitCompare, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { isActiveStatus, statusLabel } from "@/lib/scan-status";
+import { PageBackButton } from "@/components/PageBackButton";
+import { z } from "zod";
+
+const scanSearchSchema = z.object({
+  from: z.enum(["dashboard", "history"]).optional(),
+});
 
 export const Route = createFileRoute("/_authenticated/scans/$id")({
+  validateSearch: (s) => scanSearchSchema.parse(s),
   component: ScanDetailPage,
 });
 
