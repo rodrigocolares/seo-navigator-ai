@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
@@ -20,6 +27,9 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -67,6 +77,27 @@ function AuthPage() {
     navigate({ to: "/dashboard" });
   };
 
+  const sendResetLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = forgotEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      toast.error("Informe um e-mail válido.");
+      return;
+    }
+    setForgotLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(value, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotLoading(false);
+    if (error) {
+      toast.error("Não foi possível enviar o link agora. Tente novamente em alguns minutos.");
+      return;
+    }
+    toast.success("Se este e-mail estiver cadastrado, você receberá um link para redefinir sua senha.");
+    setForgotOpen(false);
+    setForgotEmail("");
+  };
+
   return (
     <div className="min-h-screen">
       <AppHeader />
@@ -103,6 +134,18 @@ function AuthPage() {
               <form onSubmit={signIn} className="space-y-3 pt-4">
                 <Field label="E-mail" type="email" value={email} onChange={setEmail} required />
                 <Field label="Senha" type="password" value={password} onChange={setPassword} required />
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setForgotOpen(true);
+                    }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Entrar
                 </Button>
@@ -122,6 +165,30 @@ function AuthPage() {
           </Tabs>
         </div>
       </main>
+
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recuperar senha</DialogTitle>
+            <DialogDescription>
+              Informe seu e-mail cadastrado para receber um link de redefinição de senha.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={sendResetLink} className="space-y-3">
+            <Field label="E-mail" type="email" value={forgotEmail} onChange={setForgotEmail} required />
+            <Button type="submit" className="w-full" disabled={forgotLoading}>
+              {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Enviar link de recuperação
+            </Button>
+            <button
+              type="button"
+              onClick={() => setForgotOpen(false)}
+              className="mx-auto block text-xs text-muted-foreground hover:underline"
+            >
+              Voltar para login
+            </button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
