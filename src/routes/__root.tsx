@@ -83,7 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Analise qualquer site em minutos: SEO técnico, performance, conteúdo, indexação e um plano de ação priorizado gerado por IA.",
       },
-      { property: "og:title", content: "SEO Insight AI" },
+      { property: "og:title", content: "SEO Insight AI — Auditoria e Otimização SEO com IA" },
       {
         property: "og:description",
         content:
@@ -91,6 +91,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "SEO Insight AI — Auditoria e Otimização SEO com IA" },
+      { name: "description", content: "Analise qualquer site em minutos: SEO técnico, performance, conteúdo, indexação e um plano de ação priorizado gerado por IA." },
+      { property: "og:description", content: "Analise qualquer site em minutos: SEO técnico, performance, conteúdo, indexação e um plano de ação priorizado gerado por IA." },
+      { name: "twitter:description", content: "Analise qualquer site em minutos: SEO técnico, performance, conteúdo, indexação e um plano de ação priorizado gerado por IA." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bad7ca15-1b21-461b-8dc3-03f7c430e38e/id-preview-9ce8c065--39b46734-a72b-41c8-bb5e-5fbfaf45b349.lovable.app-1783429987485.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bad7ca15-1b21-461b-8dc3-03f7c430e38e/id-preview-9ce8c065--39b46734-a72b-41c8-bb5e-5fbfaf45b349.lovable.app-1783429987485.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
