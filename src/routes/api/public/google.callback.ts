@@ -8,6 +8,7 @@ export const Route = createFileRoute("/api/public/google/callback")({
         const code = url.searchParams.get("code");
         const state = url.searchParams.get("state");
         const error = url.searchParams.get("error");
+        const errorDescription = url.searchParams.get("error_description");
 
         // Where to send the user afterward
         const appOrigin = (() => {
@@ -23,7 +24,10 @@ export const Route = createFileRoute("/api/public/google/callback")({
         };
 
         if (error) {
-          return redirectWith("/integrations", { google_error: error });
+          return redirectWith("/integrations", {
+            google_error: error,
+            ...(errorDescription ? { google_error_description: errorDescription } : {}),
+          });
         }
         if (!code || !state) {
           return redirectWith("/integrations", { google_error: "missing_code" });

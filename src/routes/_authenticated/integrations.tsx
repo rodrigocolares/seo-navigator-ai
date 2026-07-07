@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -12,7 +12,16 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
+  Copy,
+  Check,
+  Settings2,
+  ChevronDown,
 } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -33,13 +42,16 @@ export const Route = createFileRoute("/_authenticated/integrations")({
   validateSearch: (s: Record<string, unknown>) => ({
     google_connected: typeof s.google_connected === "string" ? s.google_connected : undefined,
     google_error: typeof s.google_error === "string" ? s.google_error : undefined,
+    google_error_description:
+      typeof s.google_error_description === "string" ? s.google_error_description : undefined,
   }),
   component: IntegrationsPage,
 });
 
 function IntegrationsPage() {
   const qc = useQueryClient();
-  const { google_connected, google_error } = Route.useSearch();
+  const { google_connected, google_error, google_error_description } = Route.useSearch();
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const listConnFn = useServerFn(listGoogleConnections);
   const listSitesFn = useServerFn(listGoogleSites);
@@ -68,15 +80,20 @@ function IntegrationsPage() {
         missing_code: "Retorno do Google incompleto. Tente novamente.",
         save_failed: "Não foi possível salvar a conexão. Tente novamente.",
         callback_failed: "Falha no retorno do Google. Verifique as configurações OAuth.",
+        redirect_uri_mismatch:
+          "As credenciais OAuth do Google ainda não possuem a URL deste ambiente cadastrada. Verifique as Redirect URIs autorizadas no Google Cloud (veja o painel de diagnóstico abaixo).",
+        invalid_client: "Client ID/Secret inválido no Google Cloud. Revise as credenciais OAuth.",
       };
       toast.error(messages[google_error] ?? `Erro na conexão: ${google_error}`);
+      setLastError(
+        google_error_description ? `${google_error}: ${google_error_description}` : google_error,
+      );
     }
     if (google_connected || google_error) {
-      // Clear URL and refetch
       qc.invalidateQueries({ queryKey: ["google-connections"] });
       window.history.replaceState({}, "", "/integrations");
     }
-  }, [google_connected, google_error, qc]);
+  }, [google_connected, google_error, google_error_description, qc]);
 
   const gscConn = useMemo(
     () => connections.find((c) => c.scopes?.some((s: string) => s.includes("webmasters"))),
@@ -91,7 +108,12 @@ function IntegrationsPage() {
     mutationFn: async (provider: "gsc" | "ga4" | "both") =>
       startOAuthFn({ data: { provider, returnTo: "/integrations" } }),
     onSuccess: ({ authUrl }) => {
-      window.location.href = authUrl;
+      // Escape iframes (Lovable preview) — Google refuses OAuth inside frames.
+      try {
+        (window.top ?? window).location.href = authUrl;
+      } catch {
+        window.location.href = authUrl;
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -140,6 +162,10 @@ function IntegrationsPage() {
           Conecte suas contas Google para enriquecer as análises com dados reais de indexação e tráfego.
         </p>
       </div>
+
+      <OAuthSetupHelp lastError={lastError} />
+
+
 
       <div className="grid gap-4 md:grid-cols-2">
         <IntegrationCard
@@ -391,5 +417,125 @@ function DomainRow(props: {
       </Select>
       <div className="text-xs text-muted-foreground">{props.saving ? "Salvando…" : "Auto-salva"}</div>
     </div>
+  );
+}
+
+function CopyableUri({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/40 px-3 py-2">
+        <code className="flex-1 truncate text-xs">{value}</code>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(value);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+              toast.success("URL copiada");
+            } catch {
+              toast.error("Não foi possível copiar");
+            }
+          }}
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground"
+          aria-label="Copiar URL"
+        >
+          {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function detectEnvironment(host: string): string {
+  if (host.includes("id-preview--")) return "Preview Lovable";
+  if (host.endsWith("-dev.lovable.app")) return "Dev Lovable";
+  if (host.endsWith(".lovable.app")) return "Produção Lovable";
+  if (host === "localhost" || host.startsWith("127.0.0.1") || host.startsWith("localhost:"))
+    return "Local";
+  return "Domínio customizado";
+}
+
+function OAuthSetupHelp({ lastError }: { lastError: string | null }) {
+  const [origin, setOrigin] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(!!lastError);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") setOrigin(window.location.origin);
+  }, []);
+  useEffect(() => {
+    if (lastError) setOpen(true);
+  }, [lastError]);
+
+  if (!origin) return null;
+  const host = origin.replace(/^https?:\/\//, "");
+  const env = detectEnvironment(host);
+  const redirectUri = `${origin}/api/public/google/callback`;
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="mb-6">
+      <div className="glass-card rounded-2xl p-5">
+        <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 text-left">
+          <div className="flex items-center gap-2">
+            <Settings2 className="h-4 w-4 text-primary" />
+            <div>
+              <p className="text-sm font-semibold">Diagnóstico e configuração OAuth</p>
+              <p className="text-xs text-muted-foreground">
+                Copie estas URLs no Google Cloud &rarr; Credentials &rarr; OAuth 2.0 Client.
+              </p>
+            </div>
+          </div>
+          <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-4 space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <p className="text-xs text-muted-foreground">Ambiente detectado</p>
+              <p className="text-sm font-medium">{env}</p>
+            </div>
+            <div className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <p className="text-xs text-muted-foreground">Origin atual</p>
+              <p className="truncate text-sm font-medium">{origin}</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Authorized JavaScript Origins
+            </p>
+            <CopyableUri label="Adicionar em JavaScript Origins" value={origin} />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Authorized Redirect URIs
+            </p>
+            <CopyableUri label="Adicionar em Redirect URIs" value={redirectUri} />
+            <p className="text-xs text-muted-foreground">
+              A mesma URL é usada para Search Console, Analytics e "Conectar ambos". Cadastre também as URLs de preview,
+              dev e produção (e do seu domínio customizado, se houver) — cada ambiente precisa constar na lista.
+            </p>
+          </div>
+
+          <div className="rounded-lg border border-border/60 bg-background/40 p-3 text-xs">
+            <p className="font-medium text-foreground">Escopos solicitados</p>
+            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted-foreground">
+              <li>openid email profile</li>
+              <li>https://www.googleapis.com/auth/webmasters.readonly (Search Console)</li>
+              <li>https://www.googleapis.com/auth/analytics.readonly (Analytics 4)</li>
+            </ul>
+          </div>
+
+          {lastError && (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive">
+              <p className="font-medium">Último erro OAuth</p>
+              <p className="mt-1 break-all">{lastError}</p>
+            </div>
+          )}
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
   );
 }
