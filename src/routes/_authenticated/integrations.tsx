@@ -158,6 +158,10 @@ function IntegrationsPage() {
         </p>
       </div>
 
+      <OAuthSetupHelp lastError={lastError} />
+
+
+
       <div className="grid gap-4 md:grid-cols-2">
         <IntegrationCard
           icon={<Search className="h-5 w-5" />}
