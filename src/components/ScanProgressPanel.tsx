@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Loader2, XCircle, Activity } from "lucide-react";
 import { toast } from "sonner";
 
-const ACTIVE = new Set(["queued", "running", "crawling", "analyzing"]);
+import { isActiveStatus } from "@/lib/scan-status";
 
 function formatEta(seconds: number | null | undefined) {
   if (!seconds || seconds <= 0) return "—";
@@ -25,8 +25,9 @@ export function ScanProgressPanel({ scanId }: { scanId: string }) {
     queryKey: ["scan-progress", scanId],
     queryFn: () => progressFn({ data: { id: scanId } }),
     refetchInterval: (q) => {
-      const s = (q.state.data as { status?: string } | undefined)?.status;
-      return s && ACTIVE.has(s) ? 3500 : false;
+      const s = (q.state.data as { status?: string; isFinal?: boolean } | undefined);
+      if (!s || s.isFinal) return false;
+      return isActiveStatus(s.status) ? 3500 : false;
     },
   });
 
@@ -41,7 +42,7 @@ export function ScanProgressPanel({ scanId }: { scanId: string }) {
   });
 
   if (!data) return null;
-  const active = ACTIVE.has(data.status ?? "");
+  const active = isActiveStatus(data.status);
   if (!active) return null;
 
   const progress = data.progress ?? 0;
